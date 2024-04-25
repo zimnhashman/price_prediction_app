@@ -1,78 +1,73 @@
 import 'package:flutter/material.dart';
-import 'package:price_prediction_app/models/product_model.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:price_prediction_app/screens/price_prediction_screen.dart';
 
+class ProductDetailsPage extends StatefulWidget {
+  final String productName;
+  final double currentUsdPrice;
+  final double currentZigPrice;
 
-class ProductDetailsPage extends StatelessWidget {
-  final Product product;
+  const ProductDetailsPage({
+    super.key,
+    required this.productName,
+    required this.currentUsdPrice,
+    required this.currentZigPrice,
+  });
 
-  const ProductDetailsPage({Key? key, required this.product}) : super(key: key);
+  @override
+  _ProductDetailsPageState createState() => _ProductDetailsPageState();
+}
 
-  void navigateToPredictionScreen(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PredictionScreen(product: product),
-      ),
+class _ProductDetailsPageState extends State<ProductDetailsPage> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
     );
+    _animation = Tween<double>(
+      begin: widget.currentZigPrice - 10, // Starting value slightly below actual value
+      end: widget.currentZigPrice,
+    ).animate(_controller);
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Product Details'),
+        title: Text(widget.productName),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Image.network(
-                product.imagePath,
-                height: 200,
-                width: 200,
-                fit: BoxFit.contain,
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Historical Price Line Graph',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
+            Text('Current Tuckshop USD Price: \$${widget.currentUsdPrice.toStringAsFixed(2)}'),
             const SizedBox(height: 10),
-            Expanded(
-              child: LineChart(
-                LineChartData(
-                  // Define your line chart data here
-                  minX: 0,
-                  maxX: 10,
-                  minY: 0,
-                  maxY: 100,
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: [
-                        FlSpot(0, 10),
-                        FlSpot(1, 30),
-                        FlSpot(2, 50),
-                        FlSpot(3, 70),
-                        FlSpot(4, 90),
-                      ],
-                      isCurved: true,
-                      color: Colors.blue,
-                    ),
-                  ],
-                ),
-              ),
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return Text('Current ZIG Price: \$${_animation.value.toStringAsFixed(2)}');
+              },
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                navigateToPredictionScreen(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PricePredictionPage()));
               },
-              child: const Text('Go to Prediction Screen'),
+              child: const Text('Go to Price Prediction'),
             ),
           ],
         ),

@@ -1,33 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:price_prediction_app/models/product_model.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:csv/csv.dart';
+import 'dart:async' show Future;
+import 'package:flutter/services.dart' show rootBundle;
 
-class PredictionScreen extends StatefulWidget {
-  final Product product;
-
-  const PredictionScreen({Key? key, required this.product}) : super(key: key);
-
+class PricePredictionPage extends StatefulWidget {
   @override
-  _PredictionScreenState createState() => _PredictionScreenState();
+  _PricePredictionPageState createState() => _PricePredictionPageState();
 }
 
-class _PredictionScreenState extends State<PredictionScreen> {
-  DateTime selectedDate = DateTime.now();
-  double predictedPrice = 0.0; // Placeholder for predicted price
+class _PricePredictionPageState extends State<PricePredictionPage> {
+  List<String> dates = [];
+  List<double> usdPrices = [];
+  List<double> zigPrices = [];
+  List<String> products = []; // To store product names
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2022),
-      lastDate: DateTime(2025),
-    );
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked;
-        // Implement your price prediction logic here based on the selected date and product
-        // Assign the predicted price to 'predictedPrice'
-      });
+  @override
+  void initState() {
+    super.initState();
+    loadCSVData();
+  }
+
+  Future<void> loadCSVData() async {
+    final String rawCSV = await rootBundle.loadString('assets/files/data.csv');
+    List<List<dynamic>> csvData = const CsvToListConverter().convert(rawCSV);
+
+    // Assuming the first row contains headers
+    for (var i = 1; i < csvData.length; i++) {
+      dates.add(csvData[i][0]);
+      usdPrices.add(double.parse(csvData[i][1].toString().split('\$')[1]));
+      zigPrices.add(double.parse(csvData[i][2].toString().split('\$')[1]));
+      products.add(csvData[i][0].toString());
     }
+    setState(() {}); // Update the UI after loading CSV data
   }
 
   @override
@@ -38,40 +43,59 @@ class _PredictionScreenState extends State<PredictionScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Select Date:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            Row(
+        child: ListView.builder(
+          itemCount: products.length,
+          itemBuilder: (context, index) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ElevatedButton(
-                  onPressed: () => _selectDate(context),
-                  child: const Text('Select Date'),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  '${selectedDate.year}-${selectedDate.month}-${selectedDate.day}',
-                  style: const TextStyle(fontSize: 18),
-                ),
+                Text(products[index]),
+                const SizedBox(height: 8),
+                LineChart(productLineChartData(index)),
+                const SizedBox(height: 20),
               ],
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Predicted Price:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              '\$${predictedPrice.toStringAsFixed(2)}', // Display predicted price here
-              style: const TextStyle(fontSize: 20, color: Colors.green),
-            ),
-          ],
+            );
+          },
         ),
       ),
+    );
+  }
+
+  LineChartData productLineChartData(int index) {
+    List<FlSpot> usdSpots = List.generate(
+      dates.length,
+          (i) => FlSpot(i.toDouble(), usdPrices[i]),
+    );
+
+    List<FlSpot> zigSpots = List.generate(
+      dates.length,
+          (i) => FlSpot(i.toDouble(), zigPrices[i]),
+    );
+
+    return LineChartData(
+      lineBarsData: [
+        LineChartBarData(
+          spots: usdSpots,
+          isCurved: true,
+          color: Colors.blue,
+          barWidth: 4,
+          isStrokeCapRound: true,
+          dotData: const FlDotData(show: false),
+          belowBarData: BarAreaData(show: false),
+        ),
+        LineChartBarData(
+          spots: zigSpots,
+          isCurved: true,
+          color: Colors.green,
+          barWidth: 4,
+          isStrokeCapRound: true,
+          dotData: const FlDotData(show: false),
+          belowBarData: BarAreaData(show: false),
+        ),
+      ],
+      gridData: const FlGridData(show: false),
+      titlesData: const FlTitlesData(show: false),
+      borderData: FlBorderData(show: false),
     );
   }
 }

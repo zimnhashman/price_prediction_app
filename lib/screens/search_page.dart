@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:price_prediction_app/models/product_model.dart';
+import 'package:price_prediction_app/data/grocery_data.dart';
 import 'package:price_prediction_app/screens/product_details.dart';
-
-// Sample list of products
-List<Product> products = [
-  Product(name: 'All Purpose Cleaner 750ml', supermarketsRTGSPrice: 10488.00, imagePath: 'url_to_image', tuckshopsUSDPrice: 1.60),
-  // Add more products here
-];
+import 'package:price_prediction_app/services/exchangerate_service.dart';
 
 class SearchPage extends StatefulWidget {
   @override
@@ -14,30 +9,41 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  List<Product> filteredProducts = [];
+  List<Map<String, dynamic>> filteredItems = [];
+  double zigExchangeRate = 0.0; // Declare and initialize the ZigExchangeRate variable
 
-  void filterProducts(String query) {
-    setState(() {
-      filteredProducts = products
-          .where((product) => product.name.toLowerCase().contains(query.toLowerCase()))
-          .toList();
-    });
+  @override
+  void initState() {
+    super.initState();
+    // Call fetchZigRate in initState and await it
+    fetchZigRate();
   }
 
-  void navigateToProductDetails(Product product) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProductDetailsPage(product: product),
-      ),
-    );
+  Future<void> fetchZigRate() async {
+    try {
+      double exchangeRate = await ExchangeRateService.fetchExchangeRate();
+      setState(() {
+        zigExchangeRate = exchangeRate; // Update the ZigExchangeRate variable
+      });
+      print('ZiG_Mid exchange rate: $exchangeRate');
+    } catch (e) {
+      print('Error fetching exchange rate: $e');
+    }
+  }
+
+  void filterItems(String query) {
+    setState(() {
+      filteredItems = groceryItemsList
+          .where((item) => item['name'].toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Product Search'),
+        title: const Text('Grocery Item Search'),
       ),
       body: Column(
         children: [
@@ -45,7 +51,7 @@ class _SearchPageState extends State<SearchPage> {
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               onChanged: (value) {
-                filterProducts(value);
+                filterItems(value);
               },
               decoration: const InputDecoration(
                 hintText: 'Search items...',
@@ -55,20 +61,29 @@ class _SearchPageState extends State<SearchPage> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: filteredProducts.length,
+              itemCount: filteredItems.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  leading: Image.network(filteredProducts[index].imagePath), // Image
-                  title: Text(filteredProducts[index].name), // Product name
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('\$${filteredProducts[index].tuckshopsUSDPrice.toStringAsFixed(2)}'), // Tuckshops USD Price
-                      Text('RTGS \$${filteredProducts[index].supermarketsRTGSPrice.toStringAsFixed(2)}'), // Supermarkets Price
-                    ],
-                  ),
+                  title: Text(filteredItems[index]['name']),
                   onTap: () {
-                    navigateToProductDetails(filteredProducts[index]);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          // Use filteredItems[index] directly as the selected item
+                          var selectedItem = filteredItems[index];
+
+                          // Extract the price from the selected item, or use a default value if item not found
+                          double currentUsdPrice = selectedItem['price'] ?? 0.0;
+
+                          return ProductDetailsPage(
+                            productName: selectedItem['name'],
+                            currentUsdPrice: currentUsdPrice,
+                            currentZigPrice: currentUsdPrice * zigExchangeRate, // Use ZigExchangeRate here
+                          );
+                        },
+                      ),
+                    );
                   },
                 );
               },
