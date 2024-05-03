@@ -121,8 +121,11 @@ class _PricePredictionPageState extends State<PricePredictionPage> {
                   style: const TextStyle(color: Colors.white),
                 ),
                 const SizedBox(height: 20),
-                TextButton(
+                OutlinedButton(
                   onPressed: _selectDate,
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.white),
+                  ),
                   child: Text(
                     _selectedDate?.toIso8601String() ?? 'Select Prediction Date',
                     style: const TextStyle(color: Colors.white),
