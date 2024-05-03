@@ -24,6 +24,7 @@ class _PricePredictionPageState extends State<PricePredictionPage> {
   String _predictedPrice = '';
   String _predictedZigPrice = '';
 
+
   @override
   void initState() {
     super.initState();
@@ -161,6 +162,42 @@ class _PricePredictionPageState extends State<PricePredictionPage> {
                     color: Colors.white,
                   ),
                 ),
+                const SizedBox(height: 10),
+
+                Expanded(
+                  child: Center(
+                      child: SfCartesianChart(
+                        // Initialize category axis
+                          primaryXAxis: const CategoryAxis(),
+                          title: ChartTitle(text: '${widget.productName} ZiG', textStyle: const TextStyle(color: Colors.white)),
+
+
+                          series: <LineSeries<ZigPriceData, String>>[
+                            LineSeries<ZigPriceData, String>(
+                              // Bind data source
+                                dataSource:  <ZigPriceData>[
+
+                                  ZigPriceData('Mar', (widget.currentUsdPrice * 0.99 * widget.currentZigPrice)),
+                                  ZigPriceData('Apr', (widget.currentUsdPrice * 0.99 * widget.currentZigPrice)),
+                                  ZigPriceData('May', (widget.currentUsdPrice * 1.00 * widget.currentZigPrice)),
+                                  ZigPriceData('Jun', (widget.currentUsdPrice * 1.01 * 20)),
+                                  ZigPriceData('Jul', (widget.currentUsdPrice * 1.00 * 23)),
+                                  ZigPriceData('Aug', (widget.currentUsdPrice * 1.1 * 22)),
+                                  ZigPriceData('Sep', (widget.currentUsdPrice * 1.08 * 27)),
+                                  ZigPriceData('Oct', (widget.currentUsdPrice * 1.1 * 30)),
+                                  ZigPriceData('Nov', (widget.currentUsdPrice * 0.97 * 37)),
+                                  ZigPriceData('Dec', (widget.currentUsdPrice * 0.97 * 40)),
+                                  ZigPriceData('Jan', (widget.currentUsdPrice * 1.2 * 41)),
+                                  ZigPriceData('Feb', (widget.currentUsdPrice * 1.2 * 44)),
+                                ],
+                                xValueMapper: (ZigPriceData prices, _) => prices.month,
+                                yValueMapper: (ZigPriceData prices, _) => prices.price
+                            )
+                          ]
+                      )
+                  ),
+                )
+
               ],
             ),
           ),
@@ -168,4 +205,10 @@ class _PricePredictionPageState extends State<PricePredictionPage> {
       ),
     );
   }
+}
+
+class ZigPriceData {
+    ZigPriceData(this.month, this.price);
+  final String month;
+  final double price;
 }

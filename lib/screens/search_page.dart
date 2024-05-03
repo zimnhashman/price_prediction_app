@@ -96,7 +96,7 @@ class _SearchPageState extends State<SearchPage> {
                             currentUsdPrice: filteredItems[index]['price'] ?? 0.0,
                             currentZigPrice: (filteredItems[index]['price'] ?? 0.0) * zigExchangeRate,
                           ),
-                          type: PageTransitionType.rotate, duration: const Duration(seconds: 2),// Specify slide right animation
+                          type: PageTransitionType.rotate, duration: const Duration(seconds: 2), alignment: Alignment.bottomLeft// Specify slide right animation
                         ),
                       );
                     },

@@ -96,8 +96,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
                         productName: widget.productName,
                         currentUsdPrice: widget.currentUsdPrice,
                         currentZigPrice: widget.currentZigPrice,
-                      ), type: PageTransitionType.rotate, duration: const Duration(seconds: 2)
-
+                      ), type: PageTransitionType.rotate, duration: const Duration(seconds: 2), alignment: Alignment.bottomLeft,
                     ),
                   );
                 },
