@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 class PricePredictionPage extends StatefulWidget {
   final String productName;
@@ -6,11 +7,11 @@ class PricePredictionPage extends StatefulWidget {
   final double currentZigPrice;
 
   const PricePredictionPage({
-    super.key,
+    Key? key,
     required this.productName,
     required this.currentUsdPrice,
     required this.currentZigPrice,
-  });
+  }) : super(key: key);
 
   @override
   _PricePredictionPageState createState() => _PricePredictionPageState();
@@ -91,52 +92,74 @@ class _PricePredictionPageState extends State<PricePredictionPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            'Price Prediction for ${widget.productName}'), // Use product name from arguments
+          'Price Prediction for ${widget.productName}',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              Text(
-                'Current Tuckshop USD Price: \$${widget.currentUsdPrice.toStringAsFixed(2)}',
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Current ZIG Price: \$${widget.currentZigPrice.toStringAsFixed(2)}',
-              ),
-              const SizedBox(height: 20),
-              TextButton(
-                onPressed: _selectDate,
-                child: Text(_selectedDate?.toIso8601String() ??
-                    'Select Prediction Date'),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    setState(() {
-                      _predictedPrice = _getPrediction();
-                      _predictedZigPrice = _getZigPrediction();
-                    });
-                  }
-
-
-                },
-                child: const Text('Predict Price'),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                _predictedPrice,
-                style: const TextStyle(
-                    fontSize: 18.0, fontWeight: FontWeight.bold),
-              ),
-              Text(_predictedZigPrice,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.deepPurpleAccent, Colors.purpleAccent],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Current Tuckshop USD Price: \$${widget.currentUsdPrice.toStringAsFixed(2)}',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Current ZIG Price: \$${widget.currentZigPrice.toStringAsFixed(2)}',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: _selectDate,
+                  child: Text(
+                    _selectedDate?.toIso8601String() ?? 'Select Prediction Date',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _formKey.currentState!.save();
+                      setState(() {
+                        _predictedPrice = _getPrediction();
+                        _predictedZigPrice = _getZigPrediction();
+                      });
+                    }
+                  },
+                  child: const Text('Predict Price'),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  _predictedPrice,
                   style: const TextStyle(
-                      fontSize: 18.0, fontWeight: FontWeight.bold))
-            ],
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  _predictedZigPrice,
+                  style: const TextStyle(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
