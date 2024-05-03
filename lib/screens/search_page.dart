@@ -10,7 +10,7 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   List<Map<String, dynamic>> filteredItems = [];
-  double zigExchangeRate = 0.0; // Declare and initialize the ZigExchangeRate variable
+  double zigExchangeRate = 14.0; // Declare and initialize the ZigExchangeRate variable
 
   @override
   void initState() {

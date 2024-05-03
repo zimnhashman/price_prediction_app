@@ -1,101 +1,145 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:csv/csv.dart';
-import 'dart:async' show Future;
-import 'package:flutter/services.dart' show rootBundle;
 
 class PricePredictionPage extends StatefulWidget {
+  final String productName;
+  final double currentUsdPrice;
+  final double currentZigPrice;
+
+  const PricePredictionPage({
+    super.key,
+    required this.productName,
+    required this.currentUsdPrice,
+    required this.currentZigPrice,
+  });
+
   @override
   _PricePredictionPageState createState() => _PricePredictionPageState();
 }
 
 class _PricePredictionPageState extends State<PricePredictionPage> {
-  List<String> dates = [];
-  List<double> usdPrices = [];
-  List<double> zigPrices = [];
-  List<String> products = []; // To store product names
+  final _formKey = GlobalKey<FormState>();
+  late double _userPrediction; // Use initial ZIG price
+  DateTime? _selectedDate;
+  String _predictedPrice = '';
+  String _predictedZigPrice = '';
 
   @override
   void initState() {
     super.initState();
-    loadCSVData();
+    _userPrediction = widget.currentUsdPrice;
   }
 
-  Future<void> loadCSVData() async {
-    final String rawCSV = await rootBundle.loadString('assets/files/data.csv');
-    List<List<dynamic>> csvData = const CsvToListConverter().convert(rawCSV);
-
-    // Assuming the first row contains headers
-    for (var i = 1; i < csvData.length; i++) {
-      dates.add(csvData[i][0]);
-      usdPrices.add(double.parse(csvData[i][1].toString().split('\$')[1]));
-      zigPrices.add(double.parse(csvData[i][2].toString().split('\$')[1]));
-      products.add(csvData[i][0].toString());
+  Future<void> _selectDate() async {
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2024, 1, 1),
+      lastDate: DateTime(2026, 1, 1),
+    );
+    if (selectedDate != null) {
+      setState(() {
+        _selectedDate = selectedDate;
+      });
     }
-    setState(() {}); // Update the UI after loading CSV data
+  }
+
+  String _getPrediction() {
+    final month = _selectedDate!.month;
+    if (month == 8 || month == 10) {
+      // Simulate price increase for Nov & Dec
+      return 'Predicted Price: \$${(_userPrediction * 1.1).toStringAsFixed(2)} (Potential Increase)';
+    } else if (month == 6) {
+      return 'Predicted Price: \$${(_userPrediction * 1.01).toStringAsFixed(2)} (Potential Increase)';
+    } else if (month == 9) {
+      return 'Predicted Price: \$${(_userPrediction * 1.08).toStringAsFixed(2)} (Potential Increase)';
+    } else if (month == 11 || month == 12) {
+      return 'Predicted Price: \$${(_userPrediction * 0.97).toStringAsFixed(2)} (Potential Decrease)';
+    } else if (month == 1 || month == 2) {
+      return 'Predicted Price: \$${(_userPrediction * 1.2).toStringAsFixed(2)} (Potential Increase)';
+    } else {
+      return 'Predicted Price: \$${(_userPrediction * 1.0).toStringAsFixed(2)} (Potential Increase)';
+    }
+  }
+
+  String _getZigPrediction() {
+    final month = _selectedDate!.month;
+    if (month == 6) {
+      return 'Predicted ZiG Price: \$${(_userPrediction * 1.01 * 20).toStringAsFixed(2)} (Potential Increase)';
+    } else if (month == 7) {
+      return 'Predicted ZiG Price: \$${(_userPrediction * 1.00 * 23).toStringAsFixed(2)} (Potential Increase)';
+    } else if (month == 8) {
+      return 'Predicted ZiG Price: \$${(_userPrediction * 1.1 * 22).toStringAsFixed(2)} (Potential Increase)';
+    } else if (month == 9) {
+      return 'Predicted ZiG Price: \$${(_userPrediction * 1.08 * 27).toStringAsFixed(2)} (Potential Increase)';
+    } else if (month == 10) {
+      return 'Predicted ZiG Price: \$${(_userPrediction * 1.1 * 30).toStringAsFixed(2)} (Potential Increase)';
+    } else if (month == 11) {
+      return 'Predicted ZiG Price: \$${(_userPrediction * 0.97 * 37).toStringAsFixed(2)} (Potential Increase)';
+    } else if (month == 12) {
+      return 'Predicted ZiG Price: \$${(_userPrediction * 0.97 * 40).toStringAsFixed(2)} (Potential Increase)';
+    } else if (month == 1) {
+      return 'Predicted ZiG Price: \$${(_userPrediction * 1.2 * 41).toStringAsFixed(2)} (Potential Increase)';
+    } else if (month == 2) {
+      return 'Predicted ZiG Price: \$${(_userPrediction * 1.2 * 44).toStringAsFixed(2)} (Potential Increase)';
+    } else {
+      return 'Predicted Zig Price: \$${(_userPrediction * 14).toStringAsFixed(2)} (Potential Increase)';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Price Prediction'),
+        title: Text(
+            'Price Prediction for ${widget.productName}'), // Use product name from arguments
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: products.length,
-          itemBuilder: (context, index) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(products[index]),
-                const SizedBox(height: 8),
-                LineChart(productLineChartData(index)),
-                const SizedBox(height: 20),
-              ],
-            );
-          },
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              Text(
+                'Current Tuckshop USD Price: \$${widget.currentUsdPrice.toStringAsFixed(2)}',
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Current ZIG Price: \$${widget.currentZigPrice.toStringAsFixed(2)}',
+              ),
+              const SizedBox(height: 20),
+              TextButton(
+                onPressed: _selectDate,
+                child: Text(_selectedDate?.toIso8601String() ??
+                    'Select Prediction Date'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    _formKey.currentState!.save();
+                    setState(() {
+                      _predictedPrice = _getPrediction();
+                      _predictedZigPrice = _getZigPrediction();
+                    });
+                  }
+
+
+                },
+                child: const Text('Predict Price'),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                _predictedPrice,
+                style: const TextStyle(
+                    fontSize: 18.0, fontWeight: FontWeight.bold),
+              ),
+              Text(_predictedZigPrice,
+                  style: const TextStyle(
+                      fontSize: 18.0, fontWeight: FontWeight.bold))
+            ],
+          ),
         ),
       ),
-    );
-  }
-
-  LineChartData productLineChartData(int index) {
-    List<FlSpot> usdSpots = List.generate(
-      dates.length,
-          (i) => FlSpot(i.toDouble(), usdPrices[i]),
-    );
-
-    List<FlSpot> zigSpots = List.generate(
-      dates.length,
-          (i) => FlSpot(i.toDouble(), zigPrices[i]),
-    );
-
-    return LineChartData(
-      lineBarsData: [
-        LineChartBarData(
-          spots: usdSpots,
-          isCurved: true,
-          color: Colors.blue,
-          barWidth: 4,
-          isStrokeCapRound: true,
-          dotData: const FlDotData(show: false),
-          belowBarData: BarAreaData(show: false),
-        ),
-        LineChartBarData(
-          spots: zigSpots,
-          isCurved: true,
-          color: Colors.green,
-          barWidth: 4,
-          isStrokeCapRound: true,
-          dotData: const FlDotData(show: false),
-          belowBarData: BarAreaData(show: false),
-        ),
-      ],
-      gridData: const FlGridData(show: false),
-      titlesData: const FlTitlesData(show: false),
-      borderData: FlBorderData(show: false),
     );
   }
 }

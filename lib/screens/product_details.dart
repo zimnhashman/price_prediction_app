@@ -17,7 +17,8 @@ class ProductDetailsPage extends StatefulWidget {
   _ProductDetailsPageState createState() => _ProductDetailsPageState();
 }
 
-class _ProductDetailsPageState extends State<ProductDetailsPage> with SingleTickerProviderStateMixin {
+class _ProductDetailsPageState extends State<ProductDetailsPage>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 
@@ -29,7 +30,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with SingleTick
       duration: const Duration(seconds: 3),
     );
     _animation = Tween<double>(
-      begin: widget.currentZigPrice - 10, // Starting value slightly below actual value
+      begin: widget.currentZigPrice -
+          9, // Starting value slightly below actual value
       end: widget.currentZigPrice,
     ).animate(_controller);
     _controller.forward();
@@ -52,20 +54,27 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with SingleTick
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Current Tuckshop USD Price: \$${widget.currentUsdPrice.toStringAsFixed(2)}'),
+            Text(
+                'Current Tuckshop USD Price: \$${widget.currentUsdPrice.toStringAsFixed(2)}'),
             const SizedBox(height: 10),
             AnimatedBuilder(
               animation: _controller,
               builder: (context, child) {
-                return Text('Current ZIG Price: \$${_animation.value.toStringAsFixed(2)}');
+                return Text(
+                    'Current ZIG Price: \$${_animation.value.toStringAsFixed(2)}');
               },
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => PricePredictionPage()));
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => PricePredictionPage(
+                              productName: widget.productName,
+                              currentUsdPrice: widget.currentUsdPrice,
+                              currentZigPrice: widget.currentZigPrice,
+                            )));
               },
               child: const Text('Go to Price Prediction'),
             ),
