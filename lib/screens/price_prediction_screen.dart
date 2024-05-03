@@ -191,9 +191,11 @@ class _PricePredictionPageState extends State<PricePredictionPage> {
                                   ZigPriceData('Feb', (widget.currentUsdPrice * 1.2 * 44)),
                                 ],
                                 xValueMapper: (ZigPriceData prices, _) => prices.month,
-                                yValueMapper: (ZigPriceData prices, _) => prices.price
-                            )
-                          ]
+                                yValueMapper: (ZigPriceData prices, _) => prices.price,
+
+                            
+                          ],
+
                       )
                   ),
                 )
@@ -209,6 +211,12 @@ class _PricePredictionPageState extends State<PricePredictionPage> {
 
 class ZigPriceData {
     ZigPriceData(this.month, this.price);
+  final String month;
+  final double price;
+}
+
+class UsdPriceData {
+  UsdPriceData(this.month, this.price);
   final String month;
   final double price;
 }
